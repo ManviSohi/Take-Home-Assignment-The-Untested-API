@@ -1,36 +1,66 @@
-const VALID_STATUSES = ['todo', 'in_progress', 'done'];
-const VALID_PRIORITIES = ['low', 'medium', 'high'];
+const VALID_STATUSES = ["pending", "in-progress", "completed"];
+const VALID_PRIORITIES = ["low", "medium", "high"];
 
+// Validation for creating a task
 const validateCreateTask = (body) => {
-  if (!body.title || typeof body.title !== 'string' || body.title.trim() === '') {
-    return 'title is required and must be a non-empty string';
+  if (!body.title || body.title.trim() === "") {
+    return "Title is required.";
   }
+
   if (body.status && !VALID_STATUSES.includes(body.status)) {
-    return `status must be one of: ${VALID_STATUSES.join(', ')}`;
+    return "Invalid status.";
   }
+
   if (body.priority && !VALID_PRIORITIES.includes(body.priority)) {
-    return `priority must be one of: ${VALID_PRIORITIES.join(', ')}`;
+    return "Invalid priority.";
   }
+
   if (body.dueDate && isNaN(Date.parse(body.dueDate))) {
-    return 'dueDate must be a valid ISO date string';
+    return "Invalid due date.";
   }
+
   return null;
 };
 
+// Validation for updating a task
 const validateUpdateTask = (body) => {
-  if (body.title !== undefined && (typeof body.title !== 'string' || body.title.trim() === '')) {
-    return 'title must be a non-empty string';
+  if (body.title !== undefined && body.title.trim() === "") {
+    return "Title cannot be empty.";
   }
-  if (body.status && !VALID_STATUSES.includes(body.status)) {
-    return `status must be one of: ${VALID_STATUSES.join(', ')}`;
+
+  if (body.status !== undefined && !VALID_STATUSES.includes(body.status)) {
+    return "Invalid status.";
   }
-  if (body.priority && !VALID_PRIORITIES.includes(body.priority)) {
-    return `priority must be one of: ${VALID_PRIORITIES.join(', ')}`;
+
+  if (
+    body.priority !== undefined &&
+    !VALID_PRIORITIES.includes(body.priority)
+  ) {
+    return "Invalid priority.";
   }
-  if (body.dueDate && isNaN(Date.parse(body.dueDate))) {
-    return 'dueDate must be a valid ISO date string';
+
+  if (
+    body.dueDate !== undefined &&
+    body.dueDate !== null &&
+    isNaN(Date.parse(body.dueDate))
+  ) {
+    return "Invalid due date.";
   }
+
   return null;
 };
 
-module.exports = { validateCreateTask, validateUpdateTask };
+// Validation for assigning a task
+const validateAssignTask = (body) => {
+  if (!body.assignedTo || body.assignedTo.trim() === "") {
+    return "assignedTo is required.";
+  }
+
+  return null;
+};
+
+module.exports = {
+  validateCreateTask,
+  validateUpdateTask,
+  validateAssignTask,
+};

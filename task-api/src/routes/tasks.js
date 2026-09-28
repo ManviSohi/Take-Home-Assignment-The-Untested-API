@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const taskService = require('../services/taskService');
-const { validateCreateTask, validateUpdateTask } = require('../utils/validators');
+const { validateCreateTask, validateUpdateTask,validateAssignTask } = require('../utils/validators');
 
 router.get('/stats', (req, res) => {
   const stats = taskService.getStats();
@@ -11,10 +11,18 @@ router.get('/stats', (req, res) => {
 router.get('/', (req, res) => {
   const { status, page, limit } = req.query;
 
-  if (status) {
-    const tasks = taskService.getByStatus(status);
-    return res.json(tasks);
+if (status) {
+  const validStatuses = ["pending", "in-progress", "completed"];
+
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      error: "Invalid status. Allowed values: pending, in-progress, completed",
+    });
   }
+
+  const tasks = taskService.getByStatus(status);
+  return res.json(tasks);
+}
 
   if (page !== undefined || limit !== undefined) {
     const pageNum = parseInt(page) || 1;
@@ -59,11 +67,31 @@ router.delete('/:id', (req, res) => {
 
   res.status(204).send();
 });
-
-router.patch('/:id/complete', (req, res) => {
+router.patch("/:id/complete", (req, res) => {
   const task = taskService.completeTask(req.params.id);
+
   if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
+    return res.status(404).json({ error: "Task not found" });
+  }
+
+  if (task.error) {
+    return res.status(400).json({ error: task.error });
+  }
+
+  res.json(task);
+});
+
+router.patch("/:id/assign", (req, res) => {
+  const error = validateAssignTask(req.body);
+
+  if (error) {
+    return res.status(400).json({ error });
+  }
+
+  const task = taskService.assignTask(req.params.id, req.body.assignedTo);
+
+  if (!task) {
+    return res.status(404).json({ error: "Task not found" });
   }
 
   res.json(task);
